@@ -423,6 +423,65 @@ button.danger:hover {
   margin-top: 4px;
 }
 
+.aviso-item.aviso-geral {
+  background: var(--blue-50);
+  border-left-color: var(--blue-600);
+  color: var(--slate-800);
+}
+
+.aviso-item.aviso-geral .data {
+  color: var(--blue-700);
+}
+
+/* ---------- Calendário acadêmico (modal na catraca) ---------- */
+
+.calendario-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--slate-200);
+}
+
+.calendario-item:last-child {
+  border-bottom: none;
+}
+
+.calendario-item-titulo {
+  font-weight: 600;
+  color: var(--slate-800);
+  font-size: 0.92rem;
+  margin-top: 6px;
+}
+
+.calendario-item-data {
+  color: var(--slate-500);
+  font-size: 0.82rem;
+  margin-top: 2px;
+}
+
+.badge-feriado {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.badge-recesso {
+  background: var(--slate-100);
+  color: var(--slate-500);
+}
+
+.badge-prova {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.badge-matricula {
+  background: var(--blue-50);
+  color: var(--blue-700);
+}
+
+.badge-semestre {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
 a {
   color: #2563eb;
 }

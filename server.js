@@ -155,12 +155,19 @@ function montarRespostaAluno(aluno) {
     )
     .all(aluno.id);
 
+  const avisosGerais = db
+    .prepare(
+      `SELECT * FROM avisos WHERE disciplina_id IS NULL ORDER BY criado_em DESC LIMIT 5`
+    )
+    .all();
+
   return {
     tipo: 'aluno',
     pessoa: { nome: aluno.nome, matricula: aluno.matricula },
     diaSemana,
     disciplinasHoje,
-    avisos
+    avisos,
+    avisosGerais
   };
 }
 
@@ -227,7 +234,7 @@ async function handleCheckinFace(req, res) {
 
   if (!melhor || menorDistancia > FACE_MATCH_THRESHOLD) {
     return sendJSON(res, 404, {
-      error: 'Rosto não reconhecido. Tente novamente ou use a matrícula.'
+      error: 'Rosto não reconhecido. Tente novamente.'
     });
   }
 
@@ -301,6 +308,13 @@ async function handleConfirmarConvite(req, res, token) {
   );
 
   sendJSON(res, 200, { ok: true });
+}
+
+function handleCalendarioPublico(req, res) {
+  const eventos = db
+    .prepare('SELECT * FROM calendario_eventos ORDER BY data_inicio')
+    .all();
+  sendJSON(res, 200, { eventos });
 }
 
 // ---------- Rotas admin ----------
@@ -596,18 +610,45 @@ async function createAviso(req, res) {
   if (!requireAdmin(req, res)) return;
   const body = await readBody(req);
   const { disciplina_id, mensagem } = body;
-  if (!disciplina_id || !mensagem) {
-    return sendJSON(res, 400, { error: 'Disciplina e mensagem são obrigatórias.' });
+  if (!mensagem || !mensagem.trim()) {
+    return sendJSON(res, 400, { error: 'A mensagem é obrigatória.' });
   }
   const info = db
     .prepare('INSERT INTO avisos (disciplina_id, mensagem, criado_em) VALUES (?, ?, ?)')
-    .run(disciplina_id, mensagem.trim(), new Date().toISOString());
+    .run(disciplina_id || null, mensagem.trim(), new Date().toISOString());
   sendJSON(res, 201, { id: Number(info.lastInsertRowid) });
 }
 
 function deleteAviso(req, res, id) {
   if (!requireAdmin(req, res)) return;
   db.prepare('DELETE FROM avisos WHERE id = ?').run(id);
+  sendJSON(res, 200, { ok: true });
+}
+
+// --- Calendário acadêmico ---
+
+function listCalendario(req, res) {
+  if (!requireAdmin(req, res)) return;
+  const eventos = db.prepare('SELECT * FROM calendario_eventos ORDER BY data_inicio').all();
+  sendJSON(res, 200, { eventos });
+}
+
+async function createEvento(req, res) {
+  if (!requireAdmin(req, res)) return;
+  const body = await readBody(req);
+  const { titulo, data_inicio, data_fim, tipo } = body;
+  if (!titulo || !data_inicio || !tipo) {
+    return sendJSON(res, 400, { error: 'Título, data de início e tipo são obrigatórios.' });
+  }
+  const info = db
+    .prepare('INSERT INTO calendario_eventos (titulo, data_inicio, data_fim, tipo) VALUES (?, ?, ?, ?)')
+    .run(titulo.trim(), data_inicio, data_fim || null, tipo);
+  sendJSON(res, 201, { id: Number(info.lastInsertRowid) });
+}
+
+function deleteEvento(req, res, id) {
+  if (!requireAdmin(req, res)) return;
+  db.prepare('DELETE FROM calendario_eventos WHERE id = ?').run(id);
   sendJSON(res, 200, { ok: true });
 }
 
@@ -618,6 +659,7 @@ const routes = [
   { method: 'POST', pattern: /^\/api\/checkin-face$/, handler: handleCheckinFace },
   { method: 'GET', pattern: /^\/api\/cadastro\/([a-f0-9]+)$/, handler: handleGetConvite },
   { method: 'POST', pattern: /^\/api\/cadastro\/([a-f0-9]+)\/face$/, handler: handleConfirmarConvite },
+  { method: 'GET', pattern: /^\/api\/calendario$/, handler: handleCalendarioPublico },
 
   { method: 'POST', pattern: /^\/api\/admin\/login$/, handler: handleLogin },
   { method: 'POST', pattern: /^\/api\/admin\/logout$/, handler: handleLogout },
@@ -648,7 +690,11 @@ const routes = [
 
   { method: 'GET', pattern: /^\/api\/admin\/avisos$/, handler: listAvisos },
   { method: 'POST', pattern: /^\/api\/admin\/avisos$/, handler: createAviso },
-  { method: 'DELETE', pattern: /^\/api\/admin\/avisos\/(\d+)$/, handler: deleteAviso }
+  { method: 'DELETE', pattern: /^\/api\/admin\/avisos\/(\d+)$/, handler: deleteAviso },
+
+  { method: 'GET', pattern: /^\/api\/admin\/calendario$/, handler: listCalendario },
+  { method: 'POST', pattern: /^\/api\/admin\/calendario$/, handler: createEvento },
+  { method: 'DELETE', pattern: /^\/api\/admin\/calendario\/(\d+)$/, handler: deleteEvento }
 ];
 
 const server = http.createServer(async (req, res) => {

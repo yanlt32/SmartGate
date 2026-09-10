@@ -56,10 +56,18 @@ db.exec(`
 
   CREATE TABLE IF NOT EXISTS avisos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    disciplina_id INTEGER NOT NULL,
+    disciplina_id INTEGER,
     mensagem TEXT NOT NULL,
     criado_em TEXT NOT NULL,
     FOREIGN KEY (disciplina_id) REFERENCES disciplinas(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS calendario_eventos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    titulo TEXT NOT NULL,
+    data_inicio TEXT NOT NULL,
+    data_fim TEXT,
+    tipo TEXT NOT NULL
   );
 `);
 
@@ -118,11 +126,59 @@ function ensureSeedData() {
     new Date().toISOString()
   );
 
+  db.prepare('INSERT INTO avisos (disciplina_id, mensagem, criado_em) VALUES (?, ?, ?)').run(
+    null,
+    'Biblioteca terá horário estendido durante a semana de provas.',
+    new Date().toISOString()
+  );
+
   db.prepare('INSERT INTO professores (nome) VALUES (?)').run('Prof. Carlos Lima');
   db.prepare('INSERT INTO funcionarios (nome, cargo) VALUES (?, ?)').run('Marcos Silva', 'Bibliotecário');
 }
 
+function ensureCalendario() {
+  const row = db.prepare('SELECT COUNT(*) as c FROM calendario_eventos').get();
+  if (row.c > 0) return;
+
+  // Datas curadas da Resolução CONSEPE nº 028/2025 (Calendário Acadêmico 2026 - UNICID),
+  // filtradas para o que interessa ao aluno no dia a dia (aula, prova, feriado, matrícula).
+  const eventos = [
+    ['Início do 1º semestre letivo', '2026-02-23', null, 'semestre'],
+    ['Recesso de Carnaval', '2026-02-16', '2026-02-18', 'recesso'],
+    ['Sexta-feira Santa', '2026-04-03', null, 'feriado'],
+    ['Sábado de Aleluia', '2026-04-04', null, 'feriado'],
+    ['Páscoa', '2026-04-05', null, 'feriado'],
+    ['Tiradentes', '2026-04-21', null, 'feriado'],
+    ['Fim do período de matrícula e rematrícula (1º sem.)', '2026-04-30', null, 'matricula'],
+    ['Dia do Trabalho', '2026-05-01', null, 'feriado'],
+    ['Avaliação Regimental (A1) — disciplinas presenciais', '2026-05-28', '2026-06-03', 'prova'],
+    ['Corpus Christi', '2026-06-04', null, 'feriado'],
+    ['Avaliação Final (AF) — disciplinas presenciais', '2026-06-15', '2026-06-20', 'prova'],
+    ['Término do 1º semestre letivo', '2026-06-30', null, 'semestre'],
+    ['Férias docentes', '2026-07-01', '2026-07-30', 'recesso'],
+    ['Revolução Constitucionalista de 1932', '2026-07-09', null, 'feriado'],
+    ['Início do 2º semestre letivo', '2026-08-03', null, 'semestre'],
+    ['Independência do Brasil', '2026-09-07', null, 'feriado'],
+    ['Fim da matrícula e rematrícula (2º sem.)', '2026-09-30', null, 'matricula'],
+    ['Nossa Senhora Aparecida', '2026-10-12', null, 'feriado'],
+    ['Finados', '2026-11-02', null, 'feriado'],
+    ['Proclamação da República', '2026-11-15', null, 'feriado'],
+    ['Zumbi e Consciência Negra', '2026-11-20', null, 'feriado'],
+    ['Avaliação Regimental (A1) — disciplinas presenciais (2º sem.)', '2026-11-25', '2026-12-01', 'prova'],
+    ['Avaliação Final (AF) — disciplinas presenciais (2º sem.)', '2026-12-09', '2026-12-15', 'prova'],
+    ['Natal', '2026-12-25', null, 'feriado'],
+    ['Término do 2º semestre letivo', '2026-12-19', null, 'semestre'],
+    ['Recesso docente', '2026-12-21', '2026-12-31', 'recesso']
+  ];
+
+  const insertEvento = db.prepare(
+    'INSERT INTO calendario_eventos (titulo, data_inicio, data_fim, tipo) VALUES (?, ?, ?, ?)'
+  );
+  eventos.forEach((e) => insertEvento.run(...e));
+}
+
 ensureDefaultAdmin();
 ensureSeedData();
+ensureCalendario();
 
 module.exports = { db, hashPassword };

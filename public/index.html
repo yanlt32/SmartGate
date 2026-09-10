@@ -22,13 +22,29 @@
       <p class="tipo-label" id="resTipoLabel"></p>
 
       <div id="resAlunoInfo" style="display:none;">
+        <div class="avisos" id="avisosGeraisWrap" style="display:none;">
+          <div class="label" style="margin-bottom:8px;">Avisos da universidade</div>
+          <div id="avisosGeraisList"></div>
+        </div>
+
         <div class="label" style="margin-top:16px;">Aulas de hoje (<span id="resDiaSemana"></span>)</div>
         <div id="disciplinasHojeList"></div>
 
         <div class="avisos" id="avisosWrap" style="display:none;">
-          <div class="label" style="margin-bottom:8px;">Avisos</div>
+          <div class="label" style="margin-bottom:8px;">Avisos das suas disciplinas</div>
           <div id="avisosList"></div>
         </div>
+
+        <button type="button" id="verCalendarioBtn" class="secondary" style="margin-top:16px;">Ver calendário acadêmico</button>
+      </div>
+    </div>
+
+    <!-- Modal do calendário acadêmico -->
+    <div class="modal-overlay" id="calendarioModal">
+      <div class="modal-box" style="max-width: 480px; max-height: 82vh; display:flex; flex-direction:column;">
+        <h3>Calendário acadêmico 2026</h3>
+        <div id="calendarioList" style="overflow-y:auto; margin-top: 8px;"></div>
+        <button type="button" class="secondary" id="fecharCalendarioBtn" style="margin-top: 16px;">Fechar</button>
       </div>
     </div>
 
@@ -46,8 +62,9 @@
   <script src="/vendor/face-api.min.js"></script>
   <script>
     const MODEL_URL = '/models';
-    const MATCH_COOLDOWN_MS = 4000;
-    const DETECT_INTERVAL_MS = 700;
+    const MATCH_COOLDOWN_MS = 5000;
+    const DETECT_INTERVAL_MS = 250;
+    const DETECTOR_OPTIONS = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
 
     const video = document.getElementById('video');
     const overlay = document.getElementById('overlay');
@@ -58,6 +75,7 @@
     let scanning = false;
     let paused = false;
     let detectTimer = null;
+    let resetTimer = null;
 
     function showMsg(text, type) {
       msgEl.innerHTML = `<div class="msg ${type}">${text}</div>`;
@@ -128,6 +146,22 @@
         avisosWrap.style.display = 'none';
       }
 
+      const avisosGeraisWrap = document.getElementById('avisosGeraisWrap');
+      const avisosGeraisList = document.getElementById('avisosGeraisList');
+      avisosGeraisList.innerHTML = '';
+
+      if (data.avisosGerais && data.avisosGerais.length > 0) {
+        data.avisosGerais.forEach((a) => {
+          const div = document.createElement('div');
+          div.className = 'aviso-item aviso-geral';
+          div.innerHTML = `${a.mensagem}<span class="data">${formatData(a.criado_em)}</span>`;
+          avisosGeraisList.appendChild(div);
+        });
+        avisosGeraisWrap.style.display = 'block';
+      } else {
+        avisosGeraisWrap.style.display = 'none';
+      }
+
       resultEl.style.display = 'block';
     }
 
@@ -158,13 +192,19 @@
       }
 
       // libera a catraca para a próxima pessoa após o intervalo de exibição
-      setTimeout(() => {
+      // (fica pausado enquanto o aluno estiver com o modal do calendário aberto)
+      agendarReset(MATCH_COOLDOWN_MS);
+    }
+
+    function agendarReset(delay) {
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(() => {
         paused = false;
         esconderResultado();
         camStatus.textContent = 'Aponte seu rosto para a câmera';
         const ctx = overlay.getContext('2d');
         ctx.clearRect(0, 0, overlay.width, overlay.height);
-      }, MATCH_COOLDOWN_MS);
+      }, delay);
     }
 
     function drawBox(detection, dims) {
@@ -195,7 +235,7 @@
       if (!paused && video.readyState === 4) {
         try {
           const detections = await faceapi
-            .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+            .detectAllFaces(video, DETECTOR_OPTIONS)
             .withFaceLandmarks()
             .withFaceDescriptors();
 
@@ -296,6 +336,57 @@
       } catch (err) {
         showMsg('Erro de conexão com o servidor.', 'error');
       }
+    });
+
+    // ---------- Calendário acadêmico (modal) ----------
+
+    const TIPO_LABELS = {
+      feriado: 'Feriado',
+      recesso: 'Recesso',
+      prova: 'Avaliação',
+      matricula: 'Matrícula',
+      semestre: 'Semestre'
+    };
+
+    function formatDataCurta(iso) {
+      const [ano, mes, dia] = iso.split('-');
+      return `${dia}/${mes}`;
+    }
+
+    const calendarioModal = document.getElementById('calendarioModal');
+    const calendarioList = document.getElementById('calendarioList');
+
+    document.getElementById('verCalendarioBtn').addEventListener('click', async () => {
+      clearTimeout(resetTimer); // pausa a volta pra tela de escaneamento enquanto o modal está aberto
+      calendarioList.innerHTML = '<p style="color:var(--slate-500); font-size:0.9rem;">Carregando...</p>';
+      calendarioModal.classList.add('open');
+
+      try {
+        const res = await fetch('/api/calendario');
+        const data = await res.json();
+        calendarioList.innerHTML = '';
+
+        (data.eventos || []).forEach((ev) => {
+          const div = document.createElement('div');
+          div.className = 'calendario-item';
+          const periodo = ev.data_fim
+            ? `${formatDataCurta(ev.data_inicio)} a ${formatDataCurta(ev.data_fim)}`
+            : formatDataCurta(ev.data_inicio);
+          div.innerHTML = `
+            <span class="badge badge-${ev.tipo}">${TIPO_LABELS[ev.tipo] || ev.tipo}</span>
+            <div class="calendario-item-titulo">${ev.titulo}</div>
+            <div class="calendario-item-data">${periodo}</div>
+          `;
+          calendarioList.appendChild(div);
+        });
+      } catch (err) {
+        calendarioList.innerHTML = '<p style="color:#dc2626; font-size:0.9rem;">Erro ao carregar o calendário.</p>';
+      }
+    });
+
+    document.getElementById('fecharCalendarioBtn').addEventListener('click', () => {
+      calendarioModal.classList.remove('open');
+      agendarReset(MATCH_COOLDOWN_MS); // retoma o reset normal da catraca
     });
 
     iniciarCamera();

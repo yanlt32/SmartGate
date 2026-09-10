@@ -268,9 +268,9 @@
             </div>
             <div class="card-body">
               <form id="avisoForm">
-                <label>Disciplina</label>
-                <select id="avisoDisciplina" required>
-                  <option value="">Selecione...</option>
+                <label>Destino do aviso</label>
+                <select id="avisoDisciplina">
+                  <option value="">Geral (toda a universidade)</option>
                 </select>
                 <label>Mensagem</label>
                 <textarea id="avisoMensagem" rows="3" required></textarea>
@@ -289,6 +289,62 @@
                   <tr><th>Curso / Disciplina</th><th>Mensagem</th><th>Data</th><th></th></tr>
                 </thead>
                 <tbody id="avisosBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CALENDÁRIO -->
+      <div class="panel" id="panelCalendario">
+        <div class="page-header">
+          <p class="eyebrow">Datas oficiais</p>
+          <h2>Calendário acadêmico</h2>
+          <p>Datas que aparecem pro aluno no botão "Ver calendário" após o check-in: início/fim de semestre, feriados, recessos, provas e matrícula.</p>
+        </div>
+
+        <div class="section-grid">
+          <div class="card form-card">
+            <div class="card-header">
+              <h3>Novo evento</h3>
+            </div>
+            <div class="card-body">
+              <form id="calendarioForm">
+                <label>Título</label>
+                <input type="text" id="eventoTitulo" placeholder="Ex: Início do 1º semestre letivo" required>
+                <div class="form-row">
+                  <div>
+                    <label>Data de início</label>
+                    <input type="date" id="eventoDataInicio" required>
+                  </div>
+                  <div>
+                    <label>Data de fim (opcional)</label>
+                    <input type="date" id="eventoDataFim">
+                  </div>
+                </div>
+                <label>Tipo</label>
+                <select id="eventoTipo" required>
+                  <option value="semestre">Semestre</option>
+                  <option value="feriado">Feriado</option>
+                  <option value="recesso">Recesso</option>
+                  <option value="prova">Avaliação</option>
+                  <option value="matricula">Matrícula</option>
+                </select>
+                <button type="submit">Adicionar evento</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="card table-card">
+            <div class="card-header">
+              <h3>Eventos cadastrados <span class="count-pill" id="calendarioCount">0</span></h3>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr><th>Título</th><th>Início</th><th>Fim</th><th>Tipo</th><th></th></tr>
+                </thead>
+                <tbody id="calendarioBody"></tbody>
               </table>
             </div>
           </div>
@@ -322,7 +378,8 @@
       professores: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.1 2.7 2 6 2s6-.9 6-2v-5"/></svg>',
       funcionarios: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>',
       alunos: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-      avisos: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>'
+      avisos: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
+      calendario: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>'
     };
 
     const NAV_ITEMS = [
@@ -330,7 +387,8 @@
       { panel: 'panelProfessores', label: 'Professores', icon: 'professores' },
       { panel: 'panelFuncionarios', label: 'Funcionários', icon: 'funcionarios' },
       { panel: 'panelAlunos', label: 'Alunos', icon: 'alunos' },
-      { panel: 'panelAvisos', label: 'Avisos', icon: 'avisos' }
+      { panel: 'panelAvisos', label: 'Avisos', icon: 'avisos' },
+      { panel: 'panelCalendario', label: 'Calendário', icon: 'calendario' }
     ];
 
     function renderNav(container) {
@@ -406,7 +464,7 @@
 
       const avisoSelect = document.getElementById('avisoDisciplina');
       const current = avisoSelect.value;
-      avisoSelect.innerHTML = '<option value="">Selecione...</option>';
+      avisoSelect.innerHTML = '<option value="">Geral (toda a universidade)</option>';
       disciplinasCache.forEach((d) => {
         avisoSelect.innerHTML += `<option value="${d.id}">${d.curso} — ${d.nome} (${d.dia_semana})</option>`;
       });
@@ -715,7 +773,7 @@
       avisos.forEach((a) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${a.curso ? `${a.curso} — ${a.disciplina_nome}` : '-'}</td><td>${a.mensagem}</td><td>${formatData(a.criado_em)}</td>
+          <td>${a.curso ? `${a.curso} — ${a.disciplina_nome}` : '<span class="badge badge-matricula">Geral</span>'}</td><td>${a.mensagem}</td><td>${formatData(a.criado_em)}</td>
           <td class="actions-cell"><button class="danger" onclick="deleteAviso(${a.id})">Excluir</button></td>
         `;
         body.appendChild(tr);
@@ -725,10 +783,9 @@
     document.getElementById('avisoForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const body = {
-        disciplina_id: document.getElementById('avisoDisciplina').value,
+        disciplina_id: document.getElementById('avisoDisciplina').value || null,
         mensagem: document.getElementById('avisoMensagem').value
       };
-      if (!body.disciplina_id) return showMsg('Selecione uma disciplina.', 'error');
       const res = await fetch('/api/admin/avisos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -746,6 +803,75 @@
       await fetch(`/api/admin/avisos/${id}`, { method: 'DELETE' });
       showMsg('Aviso excluído.', 'success');
       loadAvisos();
+    };
+
+    // ---------- Calendário acadêmico ----------
+
+    function formatDataBR(iso) {
+      if (!iso) return '-';
+      const [ano, mes, dia] = iso.split('-');
+      return `${dia}/${mes}/${ano}`;
+    }
+
+    const TIPO_LABELS = {
+      feriado: 'Feriado',
+      recesso: 'Recesso',
+      prova: 'Avaliação',
+      matricula: 'Matrícula',
+      semestre: 'Semestre'
+    };
+
+    async function loadCalendario() {
+      const res = await fetch('/api/admin/calendario');
+      const data = await res.json();
+      const eventos = data.eventos || [];
+      document.getElementById('calendarioCount').textContent = eventos.length;
+
+      const body = document.getElementById('calendarioBody');
+      body.innerHTML = '';
+
+      if (eventos.length === 0) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="5">Nenhum evento cadastrado ainda.</td></tr>';
+      }
+
+      eventos.forEach((ev) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${ev.titulo}</td>
+          <td>${formatDataBR(ev.data_inicio)}</td>
+          <td>${formatDataBR(ev.data_fim)}</td>
+          <td><span class="badge badge-${ev.tipo}">${TIPO_LABELS[ev.tipo] || ev.tipo}</span></td>
+          <td class="actions-cell"><button class="danger" onclick="deleteEvento(${ev.id})">Excluir</button></td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    document.getElementById('calendarioForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = {
+        titulo: document.getElementById('eventoTitulo').value,
+        data_inicio: document.getElementById('eventoDataInicio').value,
+        data_fim: document.getElementById('eventoDataFim').value || null,
+        tipo: document.getElementById('eventoTipo').value
+      };
+      const res = await fetch('/api/admin/calendario', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) return showMsg(data.error, 'error');
+      e.target.reset();
+      showMsg('Evento adicionado!', 'success');
+      loadCalendario();
+    });
+
+    window.deleteEvento = async (id) => {
+      if (!confirm('Excluir este evento do calendário?')) return;
+      await fetch(`/api/admin/calendario/${id}`, { method: 'DELETE' });
+      showMsg('Evento excluído.', 'success');
+      loadCalendario();
     };
 
     // ---------- Cadastro de rosto (modal genérico) ----------
@@ -869,6 +995,7 @@
     loadDisciplinas().then(() => { loadAlunos(); loadAvisos(); });
     loadProfessores();
     loadFuncionarios();
+    loadCalendario();
   </script>
 </body>
 </html>
