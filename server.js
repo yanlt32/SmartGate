@@ -11,6 +11,7 @@ const SESSION_TTL_MS = 8 * 60 * 60 * 1000; // 8 horas
 const FACE_DESCRIPTOR_LENGTH = 128;
 const FACE_MATCH_THRESHOLD = 0.55; // distância euclidiana máxima para considerar o mesmo rosto
 const DIAS_SEMANA = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+const IS_PROD = process.env.NODE_ENV === 'production';
 
 // sessões em memória: sessionId -> { adminId, expires }
 const sessions = new Map();
@@ -330,7 +331,7 @@ async function handleLogin(req, res) {
 
   res.setHeader(
     'Set-Cookie',
-    `${SESSION_COOKIE}=${sid}; HttpOnly; Path=/; Max-Age=${SESSION_TTL_MS / 1000}; SameSite=Strict`
+    `${SESSION_COOKIE}=${sid}; HttpOnly; Path=/; Max-Age=${SESSION_TTL_MS / 1000}; SameSite=Strict${IS_PROD ? '; Secure' : ''}`
   );
   sendJSON(res, 200, { ok: true, username: admin.username });
 }
@@ -338,7 +339,7 @@ async function handleLogin(req, res) {
 function handleLogout(req, res) {
   const session = getSession(req);
   if (session) sessions.delete(session.sid);
-  res.setHeader('Set-Cookie', `${SESSION_COOKIE}=; HttpOnly; Path=/; Max-Age=0`);
+  res.setHeader('Set-Cookie', `${SESSION_COOKIE}=; HttpOnly; Path=/; Max-Age=0${IS_PROD ? '; Secure' : ''}`);
   sendJSON(res, 200, { ok: true });
 }
 

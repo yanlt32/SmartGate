@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: smartgate-academico
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 24.15.0
+      - key: NODE_ENV
+        value: production
+    # Atenção: no plano free o disco é temporário. O banco (smartgate.db) é recriado
+    # do zero (com os dados de exemplo) toda vez que o serviço reinicia ou é reimplantado
+    # — inclusive os rostos cadastrados pelo admin são perdidos. Para persistir de verdade,
+    # adicione um Disk (exige plano pago, ex: Starter) montado em /data e defina a env var
+    # DB_PATH=/data/smartgate.db no serviço.

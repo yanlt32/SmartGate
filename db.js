@@ -2,7 +2,10 @@ const { DatabaseSync } = require('node:sqlite');
 const crypto = require('node:crypto');
 const path = require('node:path');
 
-const DB_PATH = path.join(__dirname, 'smartgate.db');
+// Em Render (plano free) o disco é temporário — o banco é apagado a cada deploy/restart.
+// Se adicionar um Disk persistente (plano pago), aponte DB_PATH pro caminho montado
+// (ex: /data/smartgate.db) via variável de ambiente, sem precisar mudar o código.
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'smartgate.db');
 const db = new DatabaseSync(DB_PATH);
 
 db.exec(`
