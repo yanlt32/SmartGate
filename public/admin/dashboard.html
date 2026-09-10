@@ -7,184 +7,295 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <div class="admin-wrap">
-    <div class="admin-header">
-      <h1>SmartGate Acadêmico · Admin</h1>
-      <button class="secondary" id="logoutBtn">Sair</button>
+  <div class="admin-shell">
+
+    <!-- Barra superior (só aparece em telas estreitas) -->
+    <div class="admin-topbar">
+      <div class="admin-brand">
+        <div class="mark">SG</div>
+        <div class="name">SmartGate<small>Painel administrativo</small></div>
+      </div>
+      <button id="logoutBtnMobile">Sair</button>
     </div>
+    <nav class="admin-nav-mobile" id="navMobile"></nav>
 
-    <div id="msg"></div>
-
-    <div class="tabs">
-      <div class="tab active" data-panel="panelDisciplinas">Disciplinas</div>
-      <div class="tab" data-panel="panelProfessores">Professores</div>
-      <div class="tab" data-panel="panelFuncionarios">Funcionários</div>
-      <div class="tab" data-panel="panelAlunos">Alunos</div>
-      <div class="tab" data-panel="panelAvisos">Avisos</div>
-    </div>
-
-    <!-- DISCIPLINAS -->
-    <div class="panel active" id="panelDisciplinas">
-      <div class="form-inline">
-        <h3>Nova disciplina</h3>
-        <form id="disciplinaForm">
-          <div class="form-row">
-            <div>
-              <label>Curso</label>
-              <input type="text" id="discCurso" placeholder="Ex: Análise e Desenvolvimento de Sistemas" required>
-            </div>
-            <div>
-              <label>Disciplina</label>
-              <input type="text" id="discNome" placeholder="Ex: Banco de Dados II" required>
-            </div>
-            <div>
-              <label>Professor</label>
-              <input type="text" id="discProfessor" required>
-            </div>
-            <div>
-              <label>Sala</label>
-              <input type="text" id="discSala" required>
-            </div>
-            <div>
-              <label>Andar</label>
-              <input type="text" id="discAndar" required>
-            </div>
-            <div>
-              <label>Dia da semana</label>
-              <select id="discDia" required>
-                <option value="Segunda">Segunda</option>
-                <option value="Terça">Terça</option>
-                <option value="Quarta">Quarta</option>
-                <option value="Quinta">Quinta</option>
-                <option value="Sexta">Sexta</option>
-                <option value="Sábado">Sábado</option>
-              </select>
-            </div>
-          </div>
-          <label>Horário</label>
-          <input type="text" id="discHorario" placeholder="Ex: 19:00 - 20:40" required>
-          <button type="submit">Adicionar disciplina</button>
-        </form>
+    <!-- Barra lateral (desktop) -->
+    <aside class="admin-sidebar">
+      <div class="admin-brand">
+        <div class="mark">SG</div>
+        <div class="name">SmartGate<small>Painel administrativo</small></div>
       </div>
 
-      <table>
-        <thead>
-          <tr><th>Curso</th><th>Disciplina</th><th>Dia</th><th>Horário</th><th>Sala</th><th>Professor</th><th></th></tr>
-        </thead>
-        <tbody id="disciplinasBody"></tbody>
-      </table>
-    </div>
+      <nav class="admin-nav" id="navDesktop"></nav>
 
-    <!-- PROFESSORES -->
-    <div class="panel" id="panelProfessores">
-      <div class="form-inline">
-        <h3>Novo professor</h3>
-        <form id="professorForm">
-          <label>Nome</label>
-          <input type="text" id="professorNome" required>
-          <button type="submit">Adicionar professor</button>
-        </form>
+      <div class="admin-sidebar-footer">
+        <button id="logoutBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+          Sair
+        </button>
       </div>
+    </aside>
 
-      <table>
-        <thead>
-          <tr><th>Nome</th><th>Rosto</th><th></th></tr>
-        </thead>
-        <tbody id="professoresBody"></tbody>
-      </table>
-    </div>
+    <main class="admin-main">
+      <div id="msg"></div>
 
-    <!-- FUNCIONARIOS -->
-    <div class="panel" id="panelFuncionarios">
-      <div class="form-inline">
-        <h3>Novo funcionário</h3>
-        <form id="funcionarioForm">
-          <div class="form-row">
-            <div>
-              <label>Nome</label>
-              <input type="text" id="funcionarioNome" required>
+      <!-- DISCIPLINAS -->
+      <div class="panel active" id="panelDisciplinas">
+        <div class="page-header">
+          <p class="eyebrow">Grade curricular</p>
+          <h2>Disciplinas</h2>
+          <p>Cadastre a grade da semana: curso, disciplina, professor, sala e o dia em que ela acontece.</p>
+        </div>
+
+        <div class="section-grid">
+          <div class="card form-card">
+            <div class="card-header">
+              <h3>Nova disciplina</h3>
             </div>
-            <div>
-              <label>Cargo</label>
-              <input type="text" id="funcionarioCargo" placeholder="Ex: Bibliotecário">
+            <div class="card-body">
+              <form id="disciplinaForm">
+                <div class="form-row">
+                  <div>
+                    <label>Curso</label>
+                    <input type="text" id="discCurso" placeholder="Ex: Ciência da Computação" required>
+                  </div>
+                </div>
+                <label>Disciplina</label>
+                <input type="text" id="discNome" placeholder="Ex: Banco de Dados II" required>
+                <div class="form-row">
+                  <div>
+                    <label>Professor</label>
+                    <input type="text" id="discProfessor" required>
+                  </div>
+                  <div>
+                    <label>Dia da semana</label>
+                    <select id="discDia" required>
+                      <option value="Segunda">Segunda</option>
+                      <option value="Terça">Terça</option>
+                      <option value="Quarta">Quarta</option>
+                      <option value="Quinta">Quinta</option>
+                      <option value="Sexta">Sexta</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div>
+                    <label>Sala</label>
+                    <input type="text" id="discSala" required>
+                  </div>
+                  <div>
+                    <label>Andar</label>
+                    <input type="text" id="discAndar" required>
+                  </div>
+                </div>
+                <label>Horário</label>
+                <input type="text" id="discHorario" placeholder="Ex: 19:00 - 20:40" required>
+                <button type="submit">Adicionar disciplina</button>
+              </form>
             </div>
           </div>
-          <button type="submit">Adicionar funcionário</button>
-        </form>
-      </div>
 
-      <table>
-        <thead>
-          <tr><th>Nome</th><th>Cargo</th><th>Rosto</th><th></th></tr>
-        </thead>
-        <tbody id="funcionariosBody"></tbody>
-      </table>
-    </div>
-
-    <!-- ALUNOS -->
-    <div class="panel" id="panelAlunos">
-      <div class="form-inline">
-        <h3>Novo aluno</h3>
-        <p style="color:#64748b; font-size:0.85rem; margin-top:-8px;">
-          Cadastre a matrícula, o nome e as disciplinas do aluno. O rosto <strong>não</strong> é cadastrado aqui:
-          o sistema gera um link único que o aluno usa para validar o próprio rosto (equivalente a um link de confirmação por e-mail).
-        </p>
-        <form id="alunoForm">
-          <div class="form-row">
-            <div>
-              <label>Matrícula</label>
-              <input type="text" id="alunoMatricula" required>
+          <div class="card table-card">
+            <div class="card-header">
+              <h3>Grade cadastrada <span class="count-pill" id="disciplinasCount">0</span></h3>
             </div>
-            <div>
-              <label>Nome</label>
-              <input type="text" id="alunoNome" required>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr><th>Curso</th><th>Disciplina</th><th>Dia</th><th>Horário</th><th>Sala</th><th>Professor</th><th></th></tr>
+                </thead>
+                <tbody id="disciplinasBody"></tbody>
+              </table>
             </div>
-          </div>
-          <label>Disciplinas</label>
-          <div class="disciplinas-picker" id="alunoDisciplinasPicker">
-            <p style="color:#64748b; font-size:0.9rem;">Carregando disciplinas...</p>
-          </div>
-          <button type="submit">Gerar cadastro e link do aluno</button>
-        </form>
-        <div id="alunoLinkBox" style="display:none; margin-top:14px;" class="info-box">
-          <div class="label">Link de validação (envie por e-mail ao aluno)</div>
-          <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
-            <input type="text" id="alunoLinkInput" readonly style="margin:0;">
-            <button type="button" id="alunoLinkCopyBtn" style="width:auto; padding:10px 14px;">Copiar</button>
           </div>
         </div>
       </div>
 
-      <table>
-        <thead>
-          <tr><th>Matrícula</th><th>Nome</th><th>Disciplinas</th><th>Rosto</th><th></th></tr>
-        </thead>
-        <tbody id="alunosBody"></tbody>
-      </table>
-    </div>
+      <!-- PROFESSORES -->
+      <div class="panel" id="panelProfessores">
+        <div class="page-header">
+          <p class="eyebrow">Corpo docente</p>
+          <h2>Professores</h2>
+          <p>Cadastre o professor e o rosto dele para liberar a entrada pela catraca.</p>
+        </div>
 
-    <!-- AVISOS -->
-    <div class="panel" id="panelAvisos">
-      <div class="form-inline">
-        <h3>Novo aviso</h3>
-        <form id="avisoForm">
-          <label>Disciplina</label>
-          <select id="avisoDisciplina" required>
-            <option value="">Selecione...</option>
-          </select>
-          <label>Mensagem</label>
-          <textarea id="avisoMensagem" rows="3" required></textarea>
-          <button type="submit">Publicar aviso</button>
-        </form>
+        <div class="section-grid">
+          <div class="card form-card">
+            <div class="card-header">
+              <h3>Novo professor</h3>
+            </div>
+            <div class="card-body">
+              <form id="professorForm">
+                <label>Nome</label>
+                <input type="text" id="professorNome" required>
+                <button type="submit">Adicionar professor</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="card table-card">
+            <div class="card-header">
+              <h3>Professores cadastrados <span class="count-pill" id="professoresCount">0</span></h3>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr><th>Nome</th><th>Rosto</th><th></th></tr>
+                </thead>
+                <tbody id="professoresBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <table>
-        <thead>
-          <tr><th>Curso / Disciplina</th><th>Mensagem</th><th>Data</th><th></th></tr>
-        </thead>
-        <tbody id="avisosBody"></tbody>
-      </table>
-    </div>
+      <!-- FUNCIONARIOS -->
+      <div class="panel" id="panelFuncionarios">
+        <div class="page-header">
+          <p class="eyebrow">Equipe</p>
+          <h2>Funcionários</h2>
+          <p>Cadastre a equipe (portaria, secretaria, biblioteca...) e o rosto de cada um.</p>
+        </div>
+
+        <div class="section-grid">
+          <div class="card form-card">
+            <div class="card-header">
+              <h3>Novo funcionário</h3>
+            </div>
+            <div class="card-body">
+              <form id="funcionarioForm">
+                <label>Nome</label>
+                <input type="text" id="funcionarioNome" required>
+                <label>Cargo</label>
+                <input type="text" id="funcionarioCargo" placeholder="Ex: Bibliotecário">
+                <button type="submit">Adicionar funcionário</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="card table-card">
+            <div class="card-header">
+              <h3>Equipe cadastrada <span class="count-pill" id="funcionariosCount">0</span></h3>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr><th>Nome</th><th>Cargo</th><th>Rosto</th><th></th></tr>
+                </thead>
+                <tbody id="funcionariosBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALUNOS -->
+      <div class="panel" id="panelAlunos">
+        <div class="page-header">
+          <p class="eyebrow">Matrículas</p>
+          <h2>Alunos</h2>
+          <p>Cadastre matrícula, nome e disciplinas do aluno — depois valide o rosto na hora ou envie um link para ele validar remotamente.</p>
+        </div>
+
+        <div class="section-grid">
+          <div class="card form-card">
+            <div class="card-header">
+              <h3>Novo aluno</h3>
+            </div>
+            <div class="card-body">
+              <form id="alunoForm">
+                <div class="form-row">
+                  <div>
+                    <label>Matrícula</label>
+                    <input type="text" id="alunoMatricula" required>
+                  </div>
+                  <div>
+                    <label>Nome</label>
+                    <input type="text" id="alunoNome" required>
+                  </div>
+                </div>
+                <label>Disciplinas</label>
+                <div class="disciplinas-picker" id="alunoDisciplinasPicker">
+                  <p style="color:var(--slate-500); font-size:0.9rem;">Carregando disciplinas...</p>
+                </div>
+                <button type="submit">Cadastrar aluno</button>
+              </form>
+
+              <div id="alunoSuccessBox" class="success-panel" style="display:none;">
+                <div class="success-panel-title">Aluno cadastrado — falta só o rosto</div>
+                <div class="success-panel-actions">
+                  <button type="button" id="alunoCaptureNowBtn">Cadastrar rosto agora</button>
+                  <button type="button" class="secondary" id="alunoShowLinkBtn">Enviar link por e-mail</button>
+                </div>
+                <div id="alunoLinkBox" style="display:none;">
+                  <div class="link-copy-row">
+                    <input type="text" id="alunoLinkInput" readonly>
+                    <button type="button" id="alunoLinkCopyBtn">Copiar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card table-card">
+            <div class="card-header">
+              <h3>Alunos cadastrados <span class="count-pill" id="alunosCount">0</span></h3>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr><th>Matrícula</th><th>Nome</th><th>Disciplinas</th><th>Rosto</th><th></th></tr>
+                </thead>
+                <tbody id="alunosBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AVISOS -->
+      <div class="panel" id="panelAvisos">
+        <div class="page-header">
+          <p class="eyebrow">Comunicados</p>
+          <h2>Avisos</h2>
+          <p>Publique avisos (ex: mudança de sala) vinculados a uma disciplina — aparecem pro aluno no check-in.</p>
+        </div>
+
+        <div class="section-grid">
+          <div class="card form-card">
+            <div class="card-header">
+              <h3>Novo aviso</h3>
+            </div>
+            <div class="card-body">
+              <form id="avisoForm">
+                <label>Disciplina</label>
+                <select id="avisoDisciplina" required>
+                  <option value="">Selecione...</option>
+                </select>
+                <label>Mensagem</label>
+                <textarea id="avisoMensagem" rows="3" required></textarea>
+                <button type="submit">Publicar aviso</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="card table-card">
+            <div class="card-header">
+              <h3>Avisos publicados <span class="count-pill" id="avisosCount">0</span></h3>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr><th>Curso / Disciplina</th><th>Mensagem</th><th>Data</th><th></th></tr>
+                </thead>
+                <tbody id="avisosBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
   </div>
 
   <!-- Modal de cadastro de rosto (reutilizado por aluno/professor/funcionário) -->
@@ -204,6 +315,47 @@
 
   <script src="/vendor/face-api.min.js"></script>
   <script>
+    // ---------- Navegação (ícones + itens compartilhados entre sidebar e topo mobile) ----------
+
+    const ICONS = {
+      disciplinas: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+      professores: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.1 2.7 2 6 2s6-.9 6-2v-5"/></svg>',
+      funcionarios: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>',
+      alunos: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+      avisos: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>'
+    };
+
+    const NAV_ITEMS = [
+      { panel: 'panelDisciplinas', label: 'Disciplinas', icon: 'disciplinas' },
+      { panel: 'panelProfessores', label: 'Professores', icon: 'professores' },
+      { panel: 'panelFuncionarios', label: 'Funcionários', icon: 'funcionarios' },
+      { panel: 'panelAlunos', label: 'Alunos', icon: 'alunos' },
+      { panel: 'panelAvisos', label: 'Avisos', icon: 'avisos' }
+    ];
+
+    function renderNav(container) {
+      container.innerHTML = NAV_ITEMS.map((item, i) => `
+        <div class="nav-item ${i === 0 ? 'active' : ''}" data-panel="${item.panel}">
+          ${ICONS[item.icon]}
+          <span>${item.label}</span>
+        </div>
+      `).join('');
+    }
+
+    renderNav(document.getElementById('navDesktop'));
+    renderNav(document.getElementById('navMobile'));
+
+    document.querySelectorAll('.nav-item').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const panelId = tab.dataset.panel;
+        document.querySelectorAll('.nav-item').forEach((t) => {
+          t.classList.toggle('active', t.dataset.panel === panelId);
+        });
+        document.querySelectorAll('.panel').forEach((p) => p.classList.remove('active'));
+        document.getElementById(panelId).classList.add('active');
+      });
+    });
+
     let disciplinasCache = [];
 
     function showMsg(text, type) {
@@ -216,20 +368,12 @@
       if (!r.ok) window.location.href = '/admin/login.html';
     });
 
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
+    async function fazerLogout() {
       await fetch('/api/admin/logout', { method: 'POST' });
       window.location.href = '/admin/login.html';
-    });
-
-    // tabs
-    document.querySelectorAll('.tab').forEach((tab) => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
-        document.querySelectorAll('.panel').forEach((p) => p.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById(tab.dataset.panel).classList.add('active');
-      });
-    });
+    }
+    document.getElementById('logoutBtn').addEventListener('click', fazerLogout);
+    document.getElementById('logoutBtnMobile').addEventListener('click', fazerLogout);
 
     function formatData(iso) {
       return new Date(iso).toLocaleString('pt-BR');
@@ -241,15 +385,21 @@
       const res = await fetch('/api/admin/disciplinas');
       const data = await res.json();
       disciplinasCache = data.disciplinas || [];
+      document.getElementById('disciplinasCount').textContent = disciplinasCache.length;
 
       const body = document.getElementById('disciplinasBody');
       body.innerHTML = '';
+
+      if (disciplinasCache.length === 0) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="7">Nenhuma disciplina cadastrada ainda.</td></tr>';
+      }
+
       disciplinasCache.forEach((d) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${d.curso}</td><td>${d.nome}</td><td>${d.dia_semana}</td>
           <td>${d.horario}</td><td>${d.sala} (${d.andar})</td><td>${d.professor}</td>
-          <td><button class="danger" onclick="deleteDisciplina(${d.id})">Excluir</button></td>
+          <td class="actions-cell"><button class="danger" onclick="deleteDisciplina(${d.id})">Excluir</button></td>
         `;
         body.appendChild(tr);
       });
@@ -295,7 +445,7 @@
       });
 
       if (disciplinasCache.length === 0) {
-        picker.innerHTML = '<p style="color:#64748b; font-size:0.9rem;">Cadastre uma disciplina primeiro.</p>';
+        picker.innerHTML = '<p style="color:var(--slate-500); font-size:0.9rem;">Cadastre uma disciplina primeiro.</p>';
       }
     }
 
@@ -336,17 +486,25 @@
     async function loadProfessores() {
       const res = await fetch('/api/admin/professores');
       const data = await res.json();
+      const professores = data.professores || [];
+      document.getElementById('professoresCount').textContent = professores.length;
+
       const body = document.getElementById('professoresBody');
       body.innerHTML = '';
-      (data.professores || []).forEach((p) => {
+
+      if (professores.length === 0) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="3">Nenhum professor cadastrado ainda.</td></tr>';
+      }
+
+      professores.forEach((p) => {
         const nomeAttr = p.nome.replace(/"/g, '&quot;');
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${p.nome}</td>
-          <td>${p.has_face ? '✅ Sim' : '❌ Não'}</td>
-          <td>
+          <td>${p.has_face ? '<span class="badge badge-success">Cadastrado</span>' : '<span class="badge badge-none">Sem rosto</span>'}</td>
+          <td class="actions-cell">
             <button onclick="openFaceModal('professores', ${p.id}, '${nomeAttr}')">${p.has_face ? 'Recadastrar' : 'Cadastrar'} rosto</button>
-            ${p.has_face ? `<button class="secondary" onclick="removeFace('professores', ${p.id})">Remover rosto</button>` : ''}
+            ${p.has_face ? `<button class="secondary" onclick="removeFace('professores', ${p.id})">Remover</button>` : ''}
             <button class="danger" onclick="deleteProfessor(${p.id})">Excluir</button>
           </td>
         `;
@@ -381,17 +539,25 @@
     async function loadFuncionarios() {
       const res = await fetch('/api/admin/funcionarios');
       const data = await res.json();
+      const funcionarios = data.funcionarios || [];
+      document.getElementById('funcionariosCount').textContent = funcionarios.length;
+
       const body = document.getElementById('funcionariosBody');
       body.innerHTML = '';
-      (data.funcionarios || []).forEach((f) => {
+
+      if (funcionarios.length === 0) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="4">Nenhum funcionário cadastrado ainda.</td></tr>';
+      }
+
+      funcionarios.forEach((f) => {
         const nomeAttr = f.nome.replace(/"/g, '&quot;');
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${f.nome}</td><td>${f.cargo || '-'}</td>
-          <td>${f.has_face ? '✅ Sim' : '❌ Não'}</td>
-          <td>
+          <td>${f.has_face ? '<span class="badge badge-success">Cadastrado</span>' : '<span class="badge badge-none">Sem rosto</span>'}</td>
+          <td class="actions-cell">
             <button onclick="openFaceModal('funcionarios', ${f.id}, '${nomeAttr}')">${f.has_face ? 'Recadastrar' : 'Cadastrar'} rosto</button>
-            ${f.has_face ? `<button class="secondary" onclick="removeFace('funcionarios', ${f.id})">Remover rosto</button>` : ''}
+            ${f.has_face ? `<button class="secondary" onclick="removeFace('funcionarios', ${f.id})">Remover</button>` : ''}
             <button class="danger" onclick="deleteFuncionario(${f.id})">Excluir</button>
           </td>
         `;
@@ -429,24 +595,32 @@
     async function loadAlunos() {
       const res = await fetch('/api/admin/alunos');
       const data = await res.json();
+      const alunos = data.alunos || [];
+      document.getElementById('alunosCount').textContent = alunos.length;
+
       const body = document.getElementById('alunosBody');
       body.innerHTML = '';
-      (data.alunos || []).forEach((a) => {
+
+      if (alunos.length === 0) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="5">Nenhum aluno cadastrado ainda.</td></tr>';
+      }
+
+      alunos.forEach((a) => {
         const nomeAttr = a.nome.replace(/"/g, '&quot;');
         const disciplinasTxt = a.disciplinas.length
           ? a.disciplinas.map((d) => d.nome).join(', ')
           : '-';
         const statusRosto = a.has_face
-          ? '✅ Cadastrado'
-          : (a.token ? '🟡 Pendente (aguardando aluno)' : '❌ Não');
+          ? '<span class="badge badge-success">Cadastrado</span>'
+          : (a.token ? '<span class="badge badge-pending">Pendente</span>' : '<span class="badge badge-none">Sem rosto</span>');
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${a.matricula}</td><td>${a.nome}</td><td>${disciplinasTxt}</td>
           <td>${statusRosto}</td>
-          <td>
+          <td class="actions-cell">
             ${a.token ? `<button class="secondary" onclick="mostrarLinkAluno('${a.token}')">Ver link</button>` : ''}
-            <button onclick="openFaceModal('alunos', ${a.id}, '${nomeAttr}')">${a.has_face ? 'Recadastrar' : 'Cadastrar'} rosto aqui</button>
-            ${a.has_face ? `<button class="secondary" onclick="removeFace('alunos', ${a.id})">Remover rosto</button>` : ''}
+            <button onclick="openFaceModal('alunos', ${a.id}, '${nomeAttr}')">${a.has_face ? 'Recadastrar' : 'Cadastrar'} rosto</button>
+            ${a.has_face ? `<button class="secondary" onclick="removeFace('alunos', ${a.id})">Remover</button>` : ''}
             <button class="danger" onclick="deleteAluno(${a.id})">Excluir</button>
           </td>
         `;
@@ -460,9 +634,10 @@
         document.querySelectorAll('#alunoDisciplinasPicker input[type=checkbox]:checked')
       ).map((el) => Number(el.value));
 
+      const nome = document.getElementById('alunoNome').value;
       const body = {
         matricula: document.getElementById('alunoMatricula').value,
-        nome: document.getElementById('alunoNome').value,
+        nome,
         disciplina_ids: disciplinaIds
       };
       const res = await fetch('/api/admin/alunos', {
@@ -473,18 +648,35 @@
       const data = await res.json();
       if (!res.ok) return showMsg(data.error, 'error');
       e.target.reset();
-      showMsg('Aluno cadastrado! Envie o link abaixo para ele validar o rosto.', 'success');
-      mostrarLinkAluno(data.token);
+      showMsg('Aluno cadastrado!', 'success');
+
+      novoAlunoId = data.id;
+      novoAlunoNome = nome;
+      novoAlunoToken = data.token;
+      document.getElementById('alunoLinkBox').style.display = 'none';
+      document.getElementById('alunoSuccessBox').style.display = 'block';
+
       loadAlunos();
+    });
+
+    let novoAlunoId = null;
+    let novoAlunoNome = '';
+    let novoAlunoToken = null;
+
+    document.getElementById('alunoCaptureNowBtn').addEventListener('click', () => {
+      if (novoAlunoId) openFaceModal('alunos', novoAlunoId, novoAlunoNome);
+    });
+
+    document.getElementById('alunoShowLinkBtn').addEventListener('click', () => {
+      if (novoAlunoToken) mostrarLinkAluno(novoAlunoToken);
     });
 
     window.mostrarLinkAluno = (token) => {
       const link = `${window.location.origin}/cadastro.html?token=${token}`;
-      const box = document.getElementById('alunoLinkBox');
-      const input = document.getElementById('alunoLinkInput');
-      input.value = link;
-      box.style.display = 'block';
-      box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.getElementById('alunoLinkInput').value = link;
+      document.getElementById('alunoLinkBox').style.display = 'block';
+      document.getElementById('alunoSuccessBox').style.display = 'block';
+      document.getElementById('alunoSuccessBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
     document.getElementById('alunoLinkCopyBtn').addEventListener('click', async () => {
@@ -510,13 +702,21 @@
     async function loadAvisos() {
       const res = await fetch('/api/admin/avisos');
       const data = await res.json();
+      const avisos = data.avisos || [];
+      document.getElementById('avisosCount').textContent = avisos.length;
+
       const body = document.getElementById('avisosBody');
       body.innerHTML = '';
-      (data.avisos || []).forEach((a) => {
+
+      if (avisos.length === 0) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="4">Nenhum aviso publicado ainda.</td></tr>';
+      }
+
+      avisos.forEach((a) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${a.curso ? `${a.curso} — ${a.disciplina_nome}` : '-'}</td><td>${a.mensagem}</td><td>${formatData(a.criado_em)}</td>
-          <td><button class="danger" onclick="deleteAviso(${a.id})">Excluir</button></td>
+          <td class="actions-cell"><button class="danger" onclick="deleteAviso(${a.id})">Excluir</button></td>
         `;
         body.appendChild(tr);
       });

@@ -89,17 +89,15 @@ function ensureSeedData() {
 
   const disciplinas = [
     ['Análise e Desenvolvimento de Sistemas', 'Banco de Dados II', 'Prof. Carlos Lima', 'Sala 12', '1º andar', 'Segunda', '19:00 - 20:40'],
-    ['Análise e Desenvolvimento de Sistemas', 'Redes de Computadores', 'Profa. Ana Souza', 'Sala 08', 'Térreo', 'Quarta', '19:00 - 20:40'],
-    ['Análise e Desenvolvimento de Sistemas', 'Engenharia de Software', 'Prof. Rafael Nunes', 'Sala 12', '1º andar', 'Sexta', '19:00 - 20:40'],
-    ['Direito', 'Direito Constitucional', 'Profa. Beatriz Rocha', 'Sala 21', '2º andar', 'Terça', '19:00 - 21:20'],
-    ['Direito', 'Direito Civil I', 'Prof. Marcelo Teixeira', 'Sala 21', '2º andar', 'Quinta', '19:00 - 21:20'],
-    ['Enfermagem', 'Anatomia Humana', 'Prof. Eduardo Farias', 'Sala 05', 'Térreo', 'Segunda', '07:30 - 09:10'],
-    ['Enfermagem', 'Fisiologia', 'Profa. Camila Duarte', 'Sala 05', 'Térreo', 'Quarta', '07:30 - 09:10'],
-    ['Enfermagem', 'Semiologia', 'Prof. Eduardo Farias', 'Sala 06', 'Térreo', 'Sábado', '08:00 - 11:40'],
-    ['Administração', 'Contabilidade Geral', 'Prof. Fábio Menezes', 'Sala 15', '1º andar', 'Terça', '19:00 - 20:40'],
-    ['Administração', 'Marketing', 'Profa. Larissa Prado', 'Sala 15', '1º andar', 'Quinta', '19:00 - 20:40'],
-    ['Engenharia Civil', 'Cálculo I', 'Prof. Henrique Alves', 'Sala 30', '3º andar', 'Segunda', '19:00 - 20:40'],
-    ['Engenharia Civil', 'Resistência dos Materiais', 'Prof. Henrique Alves', 'Sala 30', '3º andar', 'Sexta', '19:00 - 20:40']
+    ['Ciência da Computação', 'Estrutura de Dados', 'Prof. Henrique Alves', 'Sala 14', '1º andar', 'Segunda', '19:00 - 20:40'],
+    ['Análise e Desenvolvimento de Sistemas', 'Redes de Computadores', 'Profa. Ana Souza', 'Sala 08', 'Térreo', 'Terça', '19:00 - 20:40'],
+    ['Ciência da Computação', 'Sistemas Operacionais', 'Profa. Larissa Prado', 'Sala 14', '1º andar', 'Terça', '19:00 - 20:40'],
+    ['Análise e Desenvolvimento de Sistemas', 'Engenharia de Software', 'Prof. Rafael Nunes', 'Sala 12', '1º andar', 'Quarta', '19:00 - 20:40'],
+    ['Ciência da Computação', 'Inteligência Artificial', 'Prof. Fábio Menezes', 'Sala 14', '1º andar', 'Quarta', '19:00 - 20:40'],
+    ['Análise e Desenvolvimento de Sistemas', 'Desenvolvimento Web', 'Profa. Camila Duarte', 'Sala 12', '1º andar', 'Quinta', '19:00 - 20:40'],
+    ['Ciência da Computação', 'Algoritmos e Programação', 'Profa. Beatriz Rocha', 'Sala 14', '1º andar', 'Quinta', '19:00 - 20:40'],
+    ['Análise e Desenvolvimento de Sistemas', 'Segurança da Informação', 'Prof. Eduardo Farias', 'Sala 12', '1º andar', 'Sexta', '19:00 - 20:40'],
+    ['Ciência da Computação', 'Computação em Nuvem', 'Prof. Marcelo Teixeira', 'Sala 14', '1º andar', 'Sexta', '19:00 - 20:40']
   ];
 
   const ids = disciplinas.map((d) => Number(insertDisciplina.run(...d).lastInsertRowid));
@@ -111,8 +109,8 @@ function ensureSeedData() {
     'INSERT INTO aluno_disciplinas (aluno_id, disciplina_id) VALUES (?, ?)'
   );
   insertVinculo.run(alunoId, ids[0]); // Banco de Dados II (Segunda)
-  insertVinculo.run(alunoId, ids[1]); // Redes (Quarta)
-  insertVinculo.run(alunoId, ids[2]); // Engenharia de Software (Sexta)
+  insertVinculo.run(alunoId, ids[2]); // Redes de Computadores (Terça)
+  insertVinculo.run(alunoId, ids[4]); // Engenharia de Software (Quarta)
 
   db.prepare('INSERT INTO avisos (disciplina_id, mensagem, criado_em) VALUES (?, ?, ?)').run(
     ids[0],
