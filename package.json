@@ -1,0 +1,14 @@
+{
+  "name": "smartgate-academico",
+  "version": "1.0.0",
+  "description": "Protótipo do SmartGate Acadêmico - catraca virtual com painel admin",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "dependencies": {}
+}

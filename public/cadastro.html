@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Validar Cadastro · SmartGate</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>Validar meu rosto</h1>
+      <p class="subtitle">Confira seus dados e cadastre seu rosto para usar a catraca</p>
+
+      <div id="msg"></div>
+
+      <div id="conviteInvalido" style="display:none; text-align:center; color:#64748b;">
+        <p>Este link é inválido ou já foi utilizado.</p>
+        <p>Procure a secretaria para gerar um novo link.</p>
+      </div>
+
+      <div id="conviteValido" style="display:none;">
+        <div class="info-box">
+          <div class="label">Nome</div>
+          <div class="value" id="infoNome">-</div>
+        </div>
+        <div class="info-box" style="margin-top:10px;">
+          <div class="label">Matrícula</div>
+          <div class="value" id="infoMatricula">-</div>
+        </div>
+
+        <div class="label" style="margin-top:16px; margin-bottom:8px;">Disciplinas</div>
+        <div id="infoDisciplinas"></div>
+
+        <button type="button" id="abrirModalBtn" style="margin-top:20px;">Cadastrar meu rosto</button>
+        <p style="text-align:center; font-size:0.85rem; color:#64748b; margin-top:8px;">
+          Fique sozinho(a) em frente à câmera para o cadastro.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de captura de rosto -->
+  <div class="modal-overlay" id="faceModal">
+    <div class="modal-box">
+      <h3>Cadastrar meu rosto</h3>
+      <div class="cam-wrap" style="max-width: 360px; margin: 0 auto;">
+        <video id="video" autoplay muted playsinline></video>
+        <div class="cam-status" id="camStatus">Iniciando câmera...</div>
+      </div>
+      <p id="captureStatus" style="text-align:center; font-size:0.85rem; color:#64748b; margin: 10px 0 0;"></p>
+      <div style="display:flex; gap: 10px; margin-top: 16px;">
+        <button id="captureBtn">Capturar rosto</button>
+        <button class="secondary" id="cancelBtn">Cancelar</button>
+      </div>
+      <button id="finalizarBtn" style="margin-top:10px; display:none;">Finalizar cadastro</button>
+    </div>
+  </div>
+
+  <script src="/vendor/face-api.min.js"></script>
+  <script>
+    const MODEL_URL = '/models';
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+
+    const msgEl = document.getElementById('msg');
+    function showMsg(text, type) {
+      msgEl.innerHTML = `<div class="msg ${type}">${text}</div>`;
+    }
+
+    const faceModal = document.getElementById('faceModal');
+    const video = document.getElementById('video');
+    const camStatus = document.getElementById('camStatus');
+    const captureBtn = document.getElementById('captureBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const finalizarBtn = document.getElementById('finalizarBtn');
+    const captureStatus = document.getElementById('captureStatus');
+    const abrirModalBtn = document.getElementById('abrirModalBtn');
+
+    let modelsLoaded = false;
+    let stream = null;
+    let capturedDescriptor = null;
+
+    async function carregarConvite() {
+      if (!token) {
+        document.getElementById('conviteInvalido').style.display = 'block';
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/cadastro/${token}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          document.getElementById('conviteInvalido').style.display = 'block';
+          return;
+        }
+
+        document.getElementById('conviteValido').style.display = 'block';
+        document.getElementById('infoNome').textContent = data.nome;
+        document.getElementById('infoMatricula').textContent = data.matricula;
+
+        const lista = document.getElementById('infoDisciplinas');
+        lista.innerHTML = '';
+        data.disciplinas.forEach((d) => {
+          const div = document.createElement('div');
+          div.className = 'info-box';
+          div.style.marginBottom = '8px';
+          div.innerHTML = `
+            <div class="value">${d.nome}</div>
+            <div style="font-size:0.85rem; color:#64748b; margin-top:4px;">
+              ${d.curso} · ${d.dia_semana} · ${d.horario} · ${d.sala} (${d.andar}) · ${d.professor}
+            </div>
+          `;
+          lista.appendChild(div);
+        });
+      } catch (err) {
+        document.getElementById('conviteInvalido').style.display = 'block';
+      }
+    }
+
+    async function ensureModelsLoaded() {
+      if (modelsLoaded) return;
+      camStatus.textContent = 'Carregando modelos de IA...';
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+      ]);
+      modelsLoaded = true;
+    }
+
+    function fecharModal() {
+      faceModal.classList.remove('open');
+      if (stream) {
+        stream.getTracks().forEach((t) => t.stop());
+        stream = null;
+      }
+      capturedDescriptor = null;
+      captureStatus.textContent = '';
+      finalizarBtn.style.display = 'none';
+      captureBtn.style.display = 'inline-block';
+      captureBtn.disabled = true;
+    }
+
+    abrirModalBtn.addEventListener('click', async () => {
+      faceModal.classList.add('open');
+      captureBtn.disabled = true;
+
+      try {
+        await ensureModelsLoaded();
+        camStatus.textContent = 'Solicitando acesso à câmera...';
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: 360, height: 270, facingMode: 'user' }
+        });
+        video.srcObject = stream;
+        camStatus.textContent = 'Fique sozinho(a) em frente à câmera e clique em Capturar';
+        captureBtn.disabled = false;
+      } catch (err) {
+        camStatus.textContent = 'Não foi possível acessar a câmera.';
+      }
+    });
+
+    cancelBtn.addEventListener('click', fecharModal);
+
+    captureBtn.addEventListener('click', async () => {
+      captureBtn.disabled = true;
+      captureStatus.textContent = 'Analisando...';
+
+      try {
+        const detections = await faceapi
+          .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+          .withFaceLandmarks()
+          .withFaceDescriptors();
+
+        if (detections.length === 0) {
+          captureStatus.textContent = 'Nenhum rosto detectado. Tente novamente.';
+          captureBtn.disabled = false;
+          return;
+        }
+        if (detections.length > 1) {
+          captureStatus.textContent = 'Mais de uma pessoa detectada. Fique sozinho(a) em frente à câmera.';
+          captureBtn.disabled = false;
+          return;
+        }
+
+        capturedDescriptor = Array.from(detections[0].descriptor);
+        captureStatus.textContent = 'Rosto capturado com sucesso! ✅';
+        captureBtn.style.display = 'none';
+        finalizarBtn.style.display = 'block';
+      } catch (err) {
+        captureStatus.textContent = 'Erro ao capturar. Tente novamente.';
+        captureBtn.disabled = false;
+      }
+    });
+
+    finalizarBtn.addEventListener('click', async () => {
+      finalizarBtn.disabled = true;
+      captureStatus.textContent = 'Salvando cadastro...';
+
+      try {
+        const res = await fetch(`/api/cadastro/${token}/face`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ descriptor: capturedDescriptor })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          captureStatus.textContent = data.error || 'Erro ao salvar.';
+          finalizarBtn.disabled = false;
+          return;
+        }
+
+        fecharModal();
+        document.getElementById('conviteValido').style.display = 'none';
+        showMsg('Rosto cadastrado com sucesso! Você já pode usar a catraca com reconhecimento facial.', 'success');
+      } catch (err) {
+        captureStatus.textContent = 'Erro de conexão. Tente novamente.';
+        finalizarBtn.disabled = false;
+      }
+    });
+
+    carregarConvite();
+  </script>
+</body>
+</html>

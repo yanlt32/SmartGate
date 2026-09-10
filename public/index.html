@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartGate Acadêmico</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="kiosk">
+    <video id="video" autoplay muted playsinline></video>
+    <canvas id="overlay"></canvas>
+
+    <div class="kiosk-top">
+      <h1>SmartGate Acadêmico</h1>
+    </div>
+
+    <div id="msg" class="kiosk-msg"></div>
+
+    <div id="result" class="kiosk-result" style="display:none;">
+      <p class="nome" id="resNome"></p>
+      <p class="tipo-label" id="resTipoLabel"></p>
+
+      <div id="resAlunoInfo" style="display:none;">
+        <div class="label" style="margin-top:16px;">Aulas de hoje (<span id="resDiaSemana"></span>)</div>
+        <div id="disciplinasHojeList"></div>
+
+        <div class="avisos" id="avisosWrap" style="display:none;">
+          <div class="label" style="margin-bottom:8px;">Avisos</div>
+          <div id="avisosList"></div>
+        </div>
+      </div>
+    </div>
+
+    <form id="checkinForm" class="kiosk-fallback" style="display:none;">
+      <label for="matricula">Matrícula</label>
+      <input type="text" id="matricula" name="matricula" placeholder="Ex: 2024001">
+      <button type="submit">Liberar entrada</button>
+    </form>
+
+    <div class="kiosk-bottom">
+      <div class="cam-status" id="camStatus">Iniciando câmera...</div>
+    </div>
+  </div>
+
+  <script src="/vendor/face-api.min.js"></script>
+  <script>
+    const MODEL_URL = '/models';
+    const MATCH_COOLDOWN_MS = 4000;
+    const DETECT_INTERVAL_MS = 700;
+
+    const video = document.getElementById('video');
+    const overlay = document.getElementById('overlay');
+    const camStatus = document.getElementById('camStatus');
+    const msgEl = document.getElementById('msg');
+    const resultEl = document.getElementById('result');
+
+    let scanning = false;
+    let paused = false;
+    let detectTimer = null;
+
+    function showMsg(text, type) {
+      msgEl.innerHTML = `<div class="msg ${type}">${text}</div>`;
+    }
+
+    function clearMsg() {
+      msgEl.innerHTML = '';
+    }
+
+    function formatData(iso) {
+      return new Date(iso).toLocaleString('pt-BR');
+    }
+
+    function renderResultado(data) {
+      document.getElementById('resNome').textContent = data.pessoa.nome;
+
+      const tipoLabels = {
+        aluno: 'Aluno',
+        professor: 'Professor(a)',
+        funcionario: data.pessoa.cargo ? `Funcionário(a) — ${data.pessoa.cargo}` : 'Funcionário(a)'
+      };
+      document.getElementById('resTipoLabel').textContent = tipoLabels[data.tipo] || '';
+
+      const alunoInfo = document.getElementById('resAlunoInfo');
+
+      if (data.tipo !== 'aluno') {
+        alunoInfo.style.display = 'none';
+        resultEl.style.display = 'block';
+        return;
+      }
+
+      alunoInfo.style.display = 'block';
+      document.getElementById('resDiaSemana').textContent = data.diaSemana;
+
+      const disciplinasList = document.getElementById('disciplinasHojeList');
+      disciplinasList.innerHTML = '';
+
+      if (data.disciplinasHoje && data.disciplinasHoje.length > 0) {
+        data.disciplinasHoje.forEach((d) => {
+          const div = document.createElement('div');
+          div.className = 'info-box';
+          div.style.marginTop = '10px';
+          div.innerHTML = `
+            <div class="value">${d.nome}</div>
+            <div style="font-size:0.85rem; color:#64748b; margin-top:4px;">
+              ${d.curso} · ${d.sala} (${d.andar}) · ${d.professor} · ${d.horario}
+            </div>
+          `;
+          disciplinasList.appendChild(div);
+        });
+      } else {
+        disciplinasList.innerHTML = '<p style="color:#64748b; font-size:0.9rem;">Sem aulas hoje.</p>';
+      }
+
+      const avisosWrap = document.getElementById('avisosWrap');
+      const avisosList = document.getElementById('avisosList');
+      avisosList.innerHTML = '';
+
+      if (data.avisos && data.avisos.length > 0) {
+        data.avisos.forEach((a) => {
+          const div = document.createElement('div');
+          div.className = 'aviso-item';
+          div.innerHTML = `<strong>${a.curso} — ${a.disciplina_nome}</strong><br>${a.mensagem}<span class="data">${formatData(a.criado_em)}</span>`;
+          avisosList.appendChild(div);
+        });
+        avisosWrap.style.display = 'block';
+      } else {
+        avisosWrap.style.display = 'none';
+      }
+
+      resultEl.style.display = 'block';
+    }
+
+    function esconderResultado() {
+      resultEl.style.display = 'none';
+      clearMsg();
+    }
+
+    async function enviarDescritor(descriptor) {
+      try {
+        const res = await fetch('/api/checkin-face', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ descriptor })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          showMsg(data.error || 'Rosto não reconhecido.', 'error');
+          camStatus.textContent = 'Rosto não reconhecido. Tente novamente.';
+        } else {
+          showMsg(`Entrada liberada para ${data.pessoa.nome.split(' ')[0]}!`, 'success');
+          camStatus.textContent = `Bem-vindo(a), ${data.pessoa.nome.split(' ')[0]}!`;
+          renderResultado(data);
+        }
+      } catch (err) {
+        showMsg('Erro de conexão com o servidor.', 'error');
+      }
+
+      // libera a catraca para a próxima pessoa após o intervalo de exibição
+      setTimeout(() => {
+        paused = false;
+        esconderResultado();
+        camStatus.textContent = 'Aponte seu rosto para a câmera';
+        const ctx = overlay.getContext('2d');
+        ctx.clearRect(0, 0, overlay.width, overlay.height);
+      }, MATCH_COOLDOWN_MS);
+    }
+
+    function drawBox(detection, dims) {
+      const ctx = overlay.getContext('2d');
+      ctx.clearRect(0, 0, overlay.width, overlay.height);
+      if (!detection) return;
+      const resized = faceapi.resizeResults(detection, dims);
+      const box = resized.detection.box;
+      ctx.strokeStyle = '#2563eb';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(box.x, box.y, box.width, box.height);
+    }
+
+    // pega sempre o rosto MAIOR (mais perto da câmera) — assim quem está passando pela
+    // catraca é reconhecido mesmo com gente parada mais atrás/ao fundo aparecendo na câmera
+    function pegarRostoMaisProximo(detections) {
+      if (!detections || detections.length === 0) return null;
+      return detections.reduce((maior, atual) => {
+        const areaAtual = atual.detection.box.width * atual.detection.box.height;
+        const areaMaior = maior.detection.box.width * maior.detection.box.height;
+        return areaAtual > areaMaior ? atual : maior;
+      });
+    }
+
+    async function loopDetectar() {
+      if (!scanning) return;
+
+      if (!paused && video.readyState === 4) {
+        try {
+          const detections = await faceapi
+            .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+            .withFaceLandmarks()
+            .withFaceDescriptors();
+
+          const dims = { width: video.videoWidth, height: video.videoHeight };
+          const detection = pegarRostoMaisProximo(detections);
+
+          if (detection) {
+            drawBox(detection, dims);
+            camStatus.textContent = 'Rosto detectado, verificando...';
+            paused = true; // trava a catraca até liberar (ou negar) e passar o cooldown
+            await enviarDescritor(Array.from(detection.descriptor));
+          } else {
+            drawBox(null, dims);
+            camStatus.textContent = 'Aponte seu rosto para a câmera';
+          }
+        } catch (err) {
+          // ignora falhas pontuais de um frame e tenta novamente no próximo ciclo
+        }
+      }
+
+      detectTimer = setTimeout(loopDetectar, DETECT_INTERVAL_MS);
+    }
+
+    async function iniciarCamera() {
+      try {
+        camStatus.textContent = 'Carregando modelos de reconhecimento facial...';
+        await Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+          faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+          faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+        ]);
+
+        camStatus.textContent = 'Solicitando acesso à câmera...';
+        // pede a câmera já na proporção da tela (vertical em celular, horizontal em
+        // desktop/totem) pra imagem preencher a tela toda sem cortar nem sobrar borda
+        const aspect = window.innerWidth / window.innerHeight;
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: aspect >= 1 ? 1280 : 720 },
+            height: { ideal: aspect >= 1 ? 720 : 1280 },
+            aspectRatio: { ideal: aspect },
+            facingMode: 'user'
+          }
+        });
+        video.srcObject = stream;
+
+        await new Promise((resolve) => {
+          video.onloadedmetadata = () => resolve();
+        });
+
+        overlay.width = video.videoWidth;
+        overlay.height = video.videoHeight;
+
+        scanning = true;
+        camStatus.textContent = 'Aponte seu rosto para a câmera';
+        loopDetectar();
+      } catch (err) {
+        camStatus.textContent = 'Câmera indisponível. Use a matrícula abaixo.';
+        showMsg('Não foi possível acessar a câmera (permissão negada ou dispositivo sem webcam). Use a matrícula como alternativa.', 'error');
+        mostrarFallback();
+      }
+    }
+
+    // ---------- fallback por matrícula ----------
+    // só aparece automaticamente se a câmera falhar (permissão negada / sem webcam).
+    // não fica um link exposto na tela principal — a catraca não convida a burlar o rosto.
+
+    const fallbackForm = document.getElementById('checkinForm');
+
+    function mostrarFallback() {
+      fallbackForm.style.display = 'block';
+    }
+
+    fallbackForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMsg();
+      esconderResultado();
+
+      const matricula = document.getElementById('matricula').value.trim();
+      if (!matricula) return;
+
+      try {
+        const res = await fetch('/api/checkin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ matricula })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          showMsg(data.error || 'Erro ao liberar entrada.', 'error');
+          return;
+        }
+
+        showMsg(`Entrada liberada para ${data.pessoa.nome.split(' ')[0]}!`, 'success');
+        renderResultado(data);
+        fallbackForm.reset();
+      } catch (err) {
+        showMsg('Erro de conexão com o servidor.', 'error');
+      }
+    });
+
+    iniciarCamera();
+  </script>
+</body>
+</html>

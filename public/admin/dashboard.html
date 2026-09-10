@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard · SmartGate</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="admin-wrap">
+    <div class="admin-header">
+      <h1>SmartGate Acadêmico · Admin</h1>
+      <button class="secondary" id="logoutBtn">Sair</button>
+    </div>
+
+    <div id="msg"></div>
+
+    <div class="tabs">
+      <div class="tab active" data-panel="panelDisciplinas">Disciplinas</div>
+      <div class="tab" data-panel="panelProfessores">Professores</div>
+      <div class="tab" data-panel="panelFuncionarios">Funcionários</div>
+      <div class="tab" data-panel="panelAlunos">Alunos</div>
+      <div class="tab" data-panel="panelAvisos">Avisos</div>
+    </div>
+
+    <!-- DISCIPLINAS -->
+    <div class="panel active" id="panelDisciplinas">
+      <div class="form-inline">
+        <h3>Nova disciplina</h3>
+        <form id="disciplinaForm">
+          <div class="form-row">
+            <div>
+              <label>Curso</label>
+              <input type="text" id="discCurso" placeholder="Ex: Análise e Desenvolvimento de Sistemas" required>
+            </div>
+            <div>
+              <label>Disciplina</label>
+              <input type="text" id="discNome" placeholder="Ex: Banco de Dados II" required>
+            </div>
+            <div>
+              <label>Professor</label>
+              <input type="text" id="discProfessor" required>
+            </div>
+            <div>
+              <label>Sala</label>
+              <input type="text" id="discSala" required>
+            </div>
+            <div>
+              <label>Andar</label>
+              <input type="text" id="discAndar" required>
+            </div>
+            <div>
+              <label>Dia da semana</label>
+              <select id="discDia" required>
+                <option value="Segunda">Segunda</option>
+                <option value="Terça">Terça</option>
+                <option value="Quarta">Quarta</option>
+                <option value="Quinta">Quinta</option>
+                <option value="Sexta">Sexta</option>
+                <option value="Sábado">Sábado</option>
+              </select>
+            </div>
+          </div>
+          <label>Horário</label>
+          <input type="text" id="discHorario" placeholder="Ex: 19:00 - 20:40" required>
+          <button type="submit">Adicionar disciplina</button>
+        </form>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Curso</th><th>Disciplina</th><th>Dia</th><th>Horário</th><th>Sala</th><th>Professor</th><th></th></tr>
+        </thead>
+        <tbody id="disciplinasBody"></tbody>
+      </table>
+    </div>
+
+    <!-- PROFESSORES -->
+    <div class="panel" id="panelProfessores">
+      <div class="form-inline">
+        <h3>Novo professor</h3>
+        <form id="professorForm">
+          <label>Nome</label>
+          <input type="text" id="professorNome" required>
+          <button type="submit">Adicionar professor</button>
+        </form>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Nome</th><th>Rosto</th><th></th></tr>
+        </thead>
+        <tbody id="professoresBody"></tbody>
+      </table>
+    </div>
+
+    <!-- FUNCIONARIOS -->
+    <div class="panel" id="panelFuncionarios">
+      <div class="form-inline">
+        <h3>Novo funcionário</h3>
+        <form id="funcionarioForm">
+          <div class="form-row">
+            <div>
+              <label>Nome</label>
+              <input type="text" id="funcionarioNome" required>
+            </div>
+            <div>
+              <label>Cargo</label>
+              <input type="text" id="funcionarioCargo" placeholder="Ex: Bibliotecário">
+            </div>
+          </div>
+          <button type="submit">Adicionar funcionário</button>
+        </form>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Nome</th><th>Cargo</th><th>Rosto</th><th></th></tr>
+        </thead>
+        <tbody id="funcionariosBody"></tbody>
+      </table>
+    </div>
+
+    <!-- ALUNOS -->
+    <div class="panel" id="panelAlunos">
+      <div class="form-inline">
+        <h3>Novo aluno</h3>
+        <p style="color:#64748b; font-size:0.85rem; margin-top:-8px;">
+          Cadastre a matrícula, o nome e as disciplinas do aluno. O rosto <strong>não</strong> é cadastrado aqui:
+          o sistema gera um link único que o aluno usa para validar o próprio rosto (equivalente a um link de confirmação por e-mail).
+        </p>
+        <form id="alunoForm">
+          <div class="form-row">
+            <div>
+              <label>Matrícula</label>
+              <input type="text" id="alunoMatricula" required>
+            </div>
+            <div>
+              <label>Nome</label>
+              <input type="text" id="alunoNome" required>
+            </div>
+          </div>
+          <label>Disciplinas</label>
+          <div class="disciplinas-picker" id="alunoDisciplinasPicker">
+            <p style="color:#64748b; font-size:0.9rem;">Carregando disciplinas...</p>
+          </div>
+          <button type="submit">Gerar cadastro e link do aluno</button>
+        </form>
+        <div id="alunoLinkBox" style="display:none; margin-top:14px;" class="info-box">
+          <div class="label">Link de validação (envie por e-mail ao aluno)</div>
+          <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
+            <input type="text" id="alunoLinkInput" readonly style="margin:0;">
+            <button type="button" id="alunoLinkCopyBtn" style="width:auto; padding:10px 14px;">Copiar</button>
+          </div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Matrícula</th><th>Nome</th><th>Disciplinas</th><th>Rosto</th><th></th></tr>
+        </thead>
+        <tbody id="alunosBody"></tbody>
+      </table>
+    </div>
+
+    <!-- AVISOS -->
+    <div class="panel" id="panelAvisos">
+      <div class="form-inline">
+        <h3>Novo aviso</h3>
+        <form id="avisoForm">
+          <label>Disciplina</label>
+          <select id="avisoDisciplina" required>
+            <option value="">Selecione...</option>
+          </select>
+          <label>Mensagem</label>
+          <textarea id="avisoMensagem" rows="3" required></textarea>
+          <button type="submit">Publicar aviso</button>
+        </form>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Curso / Disciplina</th><th>Mensagem</th><th>Data</th><th></th></tr>
+        </thead>
+        <tbody id="avisosBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal de cadastro de rosto (reutilizado por aluno/professor/funcionário) -->
+  <div class="modal-overlay" id="faceModal">
+    <div class="modal-box">
+      <h3 id="faceModalTitle">Cadastrar rosto</h3>
+      <div class="cam-wrap" style="max-width: 360px; margin: 0 auto;">
+        <video id="faceVideo" autoplay muted playsinline></video>
+        <div class="cam-status" id="faceModalStatus">Carregando câmera...</div>
+      </div>
+      <div style="display:flex; gap: 10px; margin-top: 16px;">
+        <button id="faceCaptureBtn">Capturar rosto</button>
+        <button class="secondary" id="faceCancelBtn">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/vendor/face-api.min.js"></script>
+  <script>
+    let disciplinasCache = [];
+
+    function showMsg(text, type) {
+      document.getElementById('msg').innerHTML = `<div class="msg ${type}">${text}</div>`;
+      setTimeout(() => { document.getElementById('msg').innerHTML = ''; }, 3000);
+    }
+
+    // auth check
+    fetch('/api/admin/me').then((r) => {
+      if (!r.ok) window.location.href = '/admin/login.html';
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await fetch('/api/admin/logout', { method: 'POST' });
+      window.location.href = '/admin/login.html';
+    });
+
+    // tabs
+    document.querySelectorAll('.tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach((p) => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.panel).classList.add('active');
+      });
+    });
+
+    function formatData(iso) {
+      return new Date(iso).toLocaleString('pt-BR');
+    }
+
+    // ---------- Disciplinas ----------
+
+    async function loadDisciplinas() {
+      const res = await fetch('/api/admin/disciplinas');
+      const data = await res.json();
+      disciplinasCache = data.disciplinas || [];
+
+      const body = document.getElementById('disciplinasBody');
+      body.innerHTML = '';
+      disciplinasCache.forEach((d) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${d.curso}</td><td>${d.nome}</td><td>${d.dia_semana}</td>
+          <td>${d.horario}</td><td>${d.sala} (${d.andar})</td><td>${d.professor}</td>
+          <td><button class="danger" onclick="deleteDisciplina(${d.id})">Excluir</button></td>
+        `;
+        body.appendChild(tr);
+      });
+
+      const avisoSelect = document.getElementById('avisoDisciplina');
+      const current = avisoSelect.value;
+      avisoSelect.innerHTML = '<option value="">Selecione...</option>';
+      disciplinasCache.forEach((d) => {
+        avisoSelect.innerHTML += `<option value="${d.id}">${d.curso} — ${d.nome} (${d.dia_semana})</option>`;
+      });
+      avisoSelect.value = current;
+
+      renderAlunoDisciplinasPicker();
+    }
+
+    function renderAlunoDisciplinasPicker() {
+      const picker = document.getElementById('alunoDisciplinasPicker');
+      const porCurso = {};
+      disciplinasCache.forEach((d) => {
+        if (!porCurso[d.curso]) porCurso[d.curso] = [];
+        porCurso[d.curso].push(d);
+      });
+
+      picker.innerHTML = '';
+      Object.keys(porCurso).sort().forEach((curso) => {
+        const group = document.createElement('div');
+        group.className = 'curso-group';
+        const title = document.createElement('div');
+        title.className = 'curso-title';
+        title.textContent = curso;
+        group.appendChild(title);
+
+        porCurso[curso].forEach((d) => {
+          const label = document.createElement('label');
+          label.className = 'disciplina-check';
+          label.innerHTML = `
+            <input type="checkbox" value="${d.id}">
+            <span>${d.nome}<span class="det">${d.dia_semana} · ${d.horario} · ${d.sala} (${d.andar}) · ${d.professor}</span></span>
+          `;
+          group.appendChild(label);
+        });
+        picker.appendChild(group);
+      });
+
+      if (disciplinasCache.length === 0) {
+        picker.innerHTML = '<p style="color:#64748b; font-size:0.9rem;">Cadastre uma disciplina primeiro.</p>';
+      }
+    }
+
+    document.getElementById('disciplinaForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = {
+        curso: document.getElementById('discCurso').value,
+        nome: document.getElementById('discNome').value,
+        professor: document.getElementById('discProfessor').value,
+        sala: document.getElementById('discSala').value,
+        andar: document.getElementById('discAndar').value,
+        dia_semana: document.getElementById('discDia').value,
+        horario: document.getElementById('discHorario').value
+      };
+      const res = await fetch('/api/admin/disciplinas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) return showMsg(data.error, 'error');
+      e.target.reset();
+      showMsg('Disciplina adicionada!', 'success');
+      loadDisciplinas();
+    });
+
+    window.deleteDisciplina = async (id) => {
+      if (!confirm('Excluir esta disciplina? Alunos vinculados e avisos dela também serão removidos.')) return;
+      await fetch(`/api/admin/disciplinas/${id}`, { method: 'DELETE' });
+      showMsg('Disciplina excluída.', 'success');
+      loadDisciplinas();
+      loadAlunos();
+      loadAvisos();
+    };
+
+    // ---------- Professores ----------
+
+    async function loadProfessores() {
+      const res = await fetch('/api/admin/professores');
+      const data = await res.json();
+      const body = document.getElementById('professoresBody');
+      body.innerHTML = '';
+      (data.professores || []).forEach((p) => {
+        const nomeAttr = p.nome.replace(/"/g, '&quot;');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${p.nome}</td>
+          <td>${p.has_face ? '✅ Sim' : '❌ Não'}</td>
+          <td>
+            <button onclick="openFaceModal('professores', ${p.id}, '${nomeAttr}')">${p.has_face ? 'Recadastrar' : 'Cadastrar'} rosto</button>
+            ${p.has_face ? `<button class="secondary" onclick="removeFace('professores', ${p.id})">Remover rosto</button>` : ''}
+            <button class="danger" onclick="deleteProfessor(${p.id})">Excluir</button>
+          </td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    document.getElementById('professorForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = { nome: document.getElementById('professorNome').value };
+      const res = await fetch('/api/admin/professores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) return showMsg(data.error, 'error');
+      e.target.reset();
+      showMsg('Professor adicionado!', 'success');
+      loadProfessores();
+    });
+
+    window.deleteProfessor = async (id) => {
+      if (!confirm('Excluir este professor?')) return;
+      await fetch(`/api/admin/professores/${id}`, { method: 'DELETE' });
+      showMsg('Professor excluído.', 'success');
+      loadProfessores();
+    };
+
+    // ---------- Funcionários ----------
+
+    async function loadFuncionarios() {
+      const res = await fetch('/api/admin/funcionarios');
+      const data = await res.json();
+      const body = document.getElementById('funcionariosBody');
+      body.innerHTML = '';
+      (data.funcionarios || []).forEach((f) => {
+        const nomeAttr = f.nome.replace(/"/g, '&quot;');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${f.nome}</td><td>${f.cargo || '-'}</td>
+          <td>${f.has_face ? '✅ Sim' : '❌ Não'}</td>
+          <td>
+            <button onclick="openFaceModal('funcionarios', ${f.id}, '${nomeAttr}')">${f.has_face ? 'Recadastrar' : 'Cadastrar'} rosto</button>
+            ${f.has_face ? `<button class="secondary" onclick="removeFace('funcionarios', ${f.id})">Remover rosto</button>` : ''}
+            <button class="danger" onclick="deleteFuncionario(${f.id})">Excluir</button>
+          </td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    document.getElementById('funcionarioForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = {
+        nome: document.getElementById('funcionarioNome').value,
+        cargo: document.getElementById('funcionarioCargo').value
+      };
+      const res = await fetch('/api/admin/funcionarios', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) return showMsg(data.error, 'error');
+      e.target.reset();
+      showMsg('Funcionário adicionado!', 'success');
+      loadFuncionarios();
+    });
+
+    window.deleteFuncionario = async (id) => {
+      if (!confirm('Excluir este funcionário?')) return;
+      await fetch(`/api/admin/funcionarios/${id}`, { method: 'DELETE' });
+      showMsg('Funcionário excluído.', 'success');
+      loadFuncionarios();
+    };
+
+    // ---------- Alunos ----------
+
+    async function loadAlunos() {
+      const res = await fetch('/api/admin/alunos');
+      const data = await res.json();
+      const body = document.getElementById('alunosBody');
+      body.innerHTML = '';
+      (data.alunos || []).forEach((a) => {
+        const nomeAttr = a.nome.replace(/"/g, '&quot;');
+        const disciplinasTxt = a.disciplinas.length
+          ? a.disciplinas.map((d) => d.nome).join(', ')
+          : '-';
+        const statusRosto = a.has_face
+          ? '✅ Cadastrado'
+          : (a.token ? '🟡 Pendente (aguardando aluno)' : '❌ Não');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${a.matricula}</td><td>${a.nome}</td><td>${disciplinasTxt}</td>
+          <td>${statusRosto}</td>
+          <td>
+            ${a.token ? `<button class="secondary" onclick="mostrarLinkAluno('${a.token}')">Ver link</button>` : ''}
+            <button onclick="openFaceModal('alunos', ${a.id}, '${nomeAttr}')">${a.has_face ? 'Recadastrar' : 'Cadastrar'} rosto aqui</button>
+            ${a.has_face ? `<button class="secondary" onclick="removeFace('alunos', ${a.id})">Remover rosto</button>` : ''}
+            <button class="danger" onclick="deleteAluno(${a.id})">Excluir</button>
+          </td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    document.getElementById('alunoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const disciplinaIds = Array.from(
+        document.querySelectorAll('#alunoDisciplinasPicker input[type=checkbox]:checked')
+      ).map((el) => Number(el.value));
+
+      const body = {
+        matricula: document.getElementById('alunoMatricula').value,
+        nome: document.getElementById('alunoNome').value,
+        disciplina_ids: disciplinaIds
+      };
+      const res = await fetch('/api/admin/alunos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) return showMsg(data.error, 'error');
+      e.target.reset();
+      showMsg('Aluno cadastrado! Envie o link abaixo para ele validar o rosto.', 'success');
+      mostrarLinkAluno(data.token);
+      loadAlunos();
+    });
+
+    window.mostrarLinkAluno = (token) => {
+      const link = `${window.location.origin}/cadastro.html?token=${token}`;
+      const box = document.getElementById('alunoLinkBox');
+      const input = document.getElementById('alunoLinkInput');
+      input.value = link;
+      box.style.display = 'block';
+      box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+    document.getElementById('alunoLinkCopyBtn').addEventListener('click', async () => {
+      const input = document.getElementById('alunoLinkInput');
+      input.select();
+      try {
+        await navigator.clipboard.writeText(input.value);
+        showMsg('Link copiado!', 'success');
+      } catch (err) {
+        showMsg('Não foi possível copiar automaticamente. Selecione e copie manualmente.', 'error');
+      }
+    });
+
+    window.deleteAluno = async (id) => {
+      if (!confirm('Excluir este aluno?')) return;
+      await fetch(`/api/admin/alunos/${id}`, { method: 'DELETE' });
+      showMsg('Aluno excluído.', 'success');
+      loadAlunos();
+    };
+
+    // ---------- Avisos ----------
+
+    async function loadAvisos() {
+      const res = await fetch('/api/admin/avisos');
+      const data = await res.json();
+      const body = document.getElementById('avisosBody');
+      body.innerHTML = '';
+      (data.avisos || []).forEach((a) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${a.curso ? `${a.curso} — ${a.disciplina_nome}` : '-'}</td><td>${a.mensagem}</td><td>${formatData(a.criado_em)}</td>
+          <td><button class="danger" onclick="deleteAviso(${a.id})">Excluir</button></td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    document.getElementById('avisoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = {
+        disciplina_id: document.getElementById('avisoDisciplina').value,
+        mensagem: document.getElementById('avisoMensagem').value
+      };
+      if (!body.disciplina_id) return showMsg('Selecione uma disciplina.', 'error');
+      const res = await fetch('/api/admin/avisos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) return showMsg(data.error, 'error');
+      e.target.reset();
+      showMsg('Aviso publicado!', 'success');
+      loadAvisos();
+    });
+
+    window.deleteAviso = async (id) => {
+      if (!confirm('Excluir este aviso?')) return;
+      await fetch(`/api/admin/avisos/${id}`, { method: 'DELETE' });
+      showMsg('Aviso excluído.', 'success');
+      loadAvisos();
+    };
+
+    // ---------- Cadastro de rosto (modal genérico) ----------
+
+    const MODEL_URL = '/models';
+    let modelsLoaded = false;
+    let faceStream = null;
+    let currentTabela = null;
+    let currentId = null;
+
+    const faceModal = document.getElementById('faceModal');
+    const faceVideo = document.getElementById('faceVideo');
+    const faceModalStatus = document.getElementById('faceModalStatus');
+    const faceModalTitle = document.getElementById('faceModalTitle');
+    const faceCaptureBtn = document.getElementById('faceCaptureBtn');
+    const faceCancelBtn = document.getElementById('faceCancelBtn');
+
+    const reloadByTabela = {
+      alunos: loadAlunos,
+      professores: loadProfessores,
+      funcionarios: loadFuncionarios
+    };
+
+    async function ensureModelsLoaded() {
+      if (modelsLoaded) return;
+      faceModalStatus.textContent = 'Carregando modelos de IA...';
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+      ]);
+      modelsLoaded = true;
+    }
+
+    window.openFaceModal = async (tabela, id, nome) => {
+      currentTabela = tabela;
+      currentId = id;
+      faceModalTitle.textContent = `Cadastrar rosto — ${nome}`;
+      faceModal.classList.add('open');
+      faceCaptureBtn.disabled = true;
+
+      try {
+        await ensureModelsLoaded();
+        faceModalStatus.textContent = 'Solicitando acesso à câmera...';
+        faceStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: 360, height: 270, facingMode: 'user' }
+        });
+        faceVideo.srcObject = faceStream;
+        faceModalStatus.textContent = 'Posicione o rosto e clique em Capturar';
+        faceCaptureBtn.disabled = false;
+      } catch (err) {
+        faceModalStatus.textContent = 'Não foi possível acessar a câmera.';
+      }
+    };
+
+    function closeFaceModal() {
+      faceModal.classList.remove('open');
+      if (faceStream) {
+        faceStream.getTracks().forEach((t) => t.stop());
+        faceStream = null;
+      }
+      currentTabela = null;
+      currentId = null;
+    }
+
+    faceCancelBtn.addEventListener('click', closeFaceModal);
+
+    faceCaptureBtn.addEventListener('click', async () => {
+      faceCaptureBtn.disabled = true;
+      faceModalStatus.textContent = 'Analisando rosto...';
+
+      try {
+        const detections = await faceapi
+          .detectAllFaces(faceVideo, new faceapi.TinyFaceDetectorOptions())
+          .withFaceLandmarks()
+          .withFaceDescriptors();
+
+        if (detections.length === 0) {
+          faceModalStatus.textContent = 'Nenhum rosto detectado. Tente novamente.';
+          faceCaptureBtn.disabled = false;
+          return;
+        }
+        if (detections.length > 1) {
+          faceModalStatus.textContent = 'Mais de uma pessoa na câmera. Só a pessoa cadastrada pode aparecer no quadro.';
+          faceCaptureBtn.disabled = false;
+          return;
+        }
+
+        const descriptor = Array.from(detections[0].descriptor);
+        const res = await fetch(`/api/admin/${currentTabela}/${currentId}/face`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ descriptor })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          faceModalStatus.textContent = data.error || 'Erro ao salvar rosto.';
+          faceCaptureBtn.disabled = false;
+          return;
+        }
+
+        showMsg('Rosto cadastrado com sucesso!', 'success');
+        const tabela = currentTabela;
+        closeFaceModal();
+        if (reloadByTabela[tabela]) reloadByTabela[tabela]();
+      } catch (err) {
+        faceModalStatus.textContent = 'Erro ao capturar rosto. Tente novamente.';
+        faceCaptureBtn.disabled = false;
+      }
+    });
+
+    window.removeFace = async (tabela, id) => {
+      if (!confirm('Remover o rosto cadastrado?')) return;
+      await fetch(`/api/admin/${tabela}/${id}/face`, { method: 'DELETE' });
+      showMsg('Rosto removido.', 'success');
+      if (reloadByTabela[tabela]) reloadByTabela[tabela]();
+    };
+
+    // init
+    loadDisciplinas().then(() => { loadAlunos(); loadAvisos(); });
+    loadProfessores();
+    loadFuncionarios();
+  </script>
+</body>
+</html>
